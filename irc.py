@@ -58,7 +58,7 @@ def sair(conexao):
 
 def dados_recebidos(conexao, dados):
 	cont_linhas = 0
-
+	print('IRC recebeu', dados)
 	if dados == b'': #caso nao possua dados, finalizar conexao
 		return sair(conexao)
        	
@@ -83,7 +83,8 @@ def dados_recebidos(conexao, dados):
 			conexao.dados_residuais = b''
 			msg_cortada = msg.split(b' ')
 			funcao = msg_cortada[0]
-			
+			print('funcao', funcao)
+			print('msg', msg)
 			if funcao ==  b'PING':
 				conexao.enviar(b':server PONG server :' + msg_cortada[1])
 				

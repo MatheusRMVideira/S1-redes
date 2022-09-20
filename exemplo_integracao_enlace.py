@@ -12,15 +12,9 @@ from camadafisica import PTY
 from tcp import Servidor   # copie o arquivo do Trabalho 2
 from ip import IP  # copie o arquivo do Trabalho 3
 from slip import CamadaEnlace
+from irc import *
 
-def dados_recebidos(conexao, dados):
-    if dados == b'':
-        conexao.fechar()
-    else:
-        conexao.enviar(dados)   # envia de volta
-
-def conexao_aceita(conexao):
-    conexao.registrar_recebedor(dados_recebidos)   # usa esse mesmo recebedor para toda conexão aceita
+DEBUG = True
 
 linha_serial = PTY()
 outra_ponta = '192.168.123.1'
@@ -40,5 +34,6 @@ rede.definir_tabela_encaminhamento([
     ('0.0.0.0/0', outra_ponta)
 ])
 servidor = Servidor(rede, 7000)
+
 servidor.registrar_monitor_de_conexoes_aceitas(conexao_aceita)
 asyncio.get_event_loop().run_forever()

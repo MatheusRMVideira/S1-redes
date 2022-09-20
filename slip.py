@@ -18,6 +18,7 @@ class CamadaEnlace:
         for ip_outra_ponta, linha_serial in linhas_seriais.items():
             enlace = Enlace(linha_serial)
             self.enlaces[ip_outra_ponta] = enlace
+            print("Enlace criado para %s" % ip_outra_ponta)
             enlace.registrar_recebedor(self._callback)
 
     def registrar_recebedor(self, callback):
@@ -33,6 +34,7 @@ class CamadaEnlace:
         responsabilizará por encontrar em qual enlace se encontra o next_hop.
         """
         # Encontra o Enlace capaz de alcançar next_hop e envia por ele
+        print('Enlace:', datagrama)
         self.enlaces[next_hop].enviar(datagrama)
 
     def _callback(self, datagrama):
@@ -78,7 +80,7 @@ class Enlace:
                 quebra = b''
             else:
                 quebra = dados_real[tamanho_real-1]    
-            
+            print('Dados:', dados_real)
             for j in range(len(dados_real)-1):
                 dados_real[j]=dados_real[j].replace(b'\xdb\xdc',b'\xc0')   
                 dados_real[j]=dados_real[j].replace( b'\xdb\xdd',b'\xdb')

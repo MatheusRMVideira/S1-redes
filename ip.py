@@ -40,6 +40,9 @@ class IP:
             datagrama = struct.pack('!BBHHHBBH', versao_ihl, dscpecn, tamanho, identification, flags, ttl, proto, checksum) + str2addr(src_addr) + str2addr(dst_addr)
             # Tratando corretamente o campo TTL do datagrama
             if ttl > 0:
+                print('Encaminhando datagrama de %s para %s' % (src_addr, dst_addr))
+                print('Próximo salto: %s' % next_hop)
+                print('datagrama: %s' % datagrama)
                 self.enlace.enviar(datagrama, next_hop)
             else:
                 next_hop = self._next_hop(src_addr)
@@ -50,6 +53,7 @@ class IP:
                 icmp = struct.pack('!BBHI', tipo, 0, checksum, tamanho) + payload
                 checksum = calc_checksum(icmp)
                 icmp = struct.pack('!BBHI', tipo, 0, checksum, tamanho) + payload
+                print("Enviando ICMP TTL Excedido")
                 self.enviar(icmp, src_addr, IPPROTO_ICMP)
 
     def _next_hop(self, dest_addr):
@@ -122,4 +126,6 @@ class IP:
         checksum = calc_checksum(header)
         header = struct.pack('!BBHHHBBH', versao_ihl, dscpecn, tamanho, identification, flags, ttl, protocolo, checksum) + str2addr(self.meu_endereco) + str2addr(dest_addr)
         datagrama = header + segmento
+        print('Enviando datagrama IPv4 para %s' % dest_addr)
+        print('Dados: %s' % datagrama)
         self.enlace.enviar(datagrama, next_hop)

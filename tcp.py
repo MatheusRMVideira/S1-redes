@@ -38,6 +38,9 @@ class Servidor:
         src_port, dst_port, seq_no, ack_no, \
             flags, window_size, checksum, urg_ptr = read_header(segment)
 
+        print('Recebido pacote de %s:%d para %s:%d' % (src_addr, src_port, dst_addr, dst_port))
+        print('conteudo: %s' % segment)
+
         if dst_port != self.porta:
             # Ignora segmentos que não são destinados à porta do nosso servidor
             return
@@ -106,11 +109,14 @@ class Conexao:
                 self.callback(self, b'')
                 self.ack_no += 1
                 cabecalho = make_header( dst_port, src_port, self.seq_no, self.ack_no, FLAGS_FIN | FLAGS_ACK)
+                print('Enviando pacote de desconexão')
+                print('cabecalho: ', cabecalho)
                 self.servidor.rede.enviar(fix_checksum(cabecalho, src_addr, dst_addr), src_addr)
                 return
             
             #Finaliza o processo de desconexão
             if (flags & FLAGS_ACK) == FLAGS_ACK and self.desconectando:
+                print('Conexão finalizada')
                 self.servidor.conexoes.pop(self.id_conexao)
                 return
 
