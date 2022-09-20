@@ -226,8 +226,3 @@ def conexao_aceita(conexao):
     conexao.dados_residuais = b''
     conexao.registrar_recebedor(dados_recebidos)
 
-
-servidor = Servidor(6667)
-servidor.registrar_monitor_de_conexoes_aceitas(conexao_aceita)
-asyncio.get_event_loop().run_forever()
-
