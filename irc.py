@@ -86,7 +86,10 @@ def dados_recebidos(conexao, dados):
 			print('funcao', funcao)
 			print('msg', msg)
 			if funcao ==  b'PING':
-				conexao.enviar(b':server PONG server :' + msg_cortada[1])
+				string = msg_cortada[1]
+				for i in range(2, len(msg_cortada)):
+					string = string + (b' %s' % msg_cortada[i])
+				conexao.enviar(b':server PONG server :' + string)
 				
 			elif funcao == b'NICK':
 				tratamento_nick(conexao,msg_cortada)
@@ -132,6 +135,8 @@ def tratamento_nick(conexao, msg_cortada): #Passo 4
 def tratamento_privmsg(conexao, msg_cortada, msg):
 	destinatario_apelido = msg_cortada[1].lower()
 	conteudo = msg_cortada[2]
+	for i in range(3, len(msg_cortada)):
+			conteudo = conteudo + (b' %s' % msg_cortada[i])
 	#Se for mensagem para grupo
 	if destinatario_apelido[0] == 35: # 35 = '#'
 		
