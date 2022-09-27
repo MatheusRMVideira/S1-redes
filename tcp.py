@@ -31,22 +31,20 @@ class Servidor:
         # Envia um pacote de resposta para confirmar a conexão
         cabecalho = make_header(dst_port, src_port, seq_no, ack_no, FLAGS_SYN | FLAGS_ACK)
         self.rede.enviar(fix_checksum(cabecalho, src_addr, dst_addr), src_addr)
-
+        print("TCP: Enviando SYN-ACK para %s:%d" % (src_addr, src_port))
         return Conexao(self, id_conexao, seq_no + 1, ack_no)
 
     def _rdt_rcv(self, src_addr, dst_addr, segment):
         src_port, dst_port, seq_no, ack_no, \
             flags, window_size, checksum, urg_ptr = read_header(segment)
 
-        print('Recebido pacote de %s:%d para %s:%d' % (src_addr, src_port, dst_addr, dst_port))
-        print('conteudo: %s' % segment)
+        print('TCP: Recebido pacote de %s:%d para %s:%d' % (src_addr, src_port, dst_addr, dst_port))
 
         if dst_port != self.porta:
             # Ignora segmentos que não são destinados à porta do nosso servidor
             return
 
         if not self.rede.ignore_checksum and calc_checksum(segment, src_addr, dst_addr) != 0:
-            print('descartando segmento com checksum incorreto')
             return
 
         payload = segment[4*(flags>>12):]
@@ -62,7 +60,7 @@ class Servidor:
             # Passa para a conexão adequada se ela já estiver estabelecida
             self.conexoes[id_conexao]._rdt_rcv(seq_no, ack_no, flags, payload)
         else:
-            print('%s:%d -> %s:%d (pacote associado a conexão desconhecida)' %
+            print('TCP: %s:%d -> %s:%d (pacote associado a conexão desconhecida)' %
                   (src_addr, src_port, dst_addr, dst_port))
 
 
@@ -109,21 +107,20 @@ class Conexao:
                 self.callback(self, b'')
                 self.ack_no += 1
                 cabecalho = make_header( dst_port, src_port, self.seq_no, self.ack_no, FLAGS_FIN | FLAGS_ACK)
-                print('Enviando pacote de desconexão')
-                print('cabecalho: ', cabecalho)
+                print("TCP: Enviando FIN-ACK para %s:%d" % (src_addr, src_port))
                 self.servidor.rede.enviar(fix_checksum(cabecalho, src_addr, dst_addr), src_addr)
                 return
             
             #Finaliza o processo de desconexão
             if (flags & FLAGS_ACK) == FLAGS_ACK and self.desconectando:
-                print('Conexão finalizada')
+                print("TCP: Conexão finalizada")
                 self.servidor.conexoes.pop(self.id_conexao)
                 return
 
             if (flags & FLAGS_ACK) == FLAGS_ACK and ack_no > self.ultimo_enviado:
                 self.nao_confirmados = self.nao_confirmados[ack_no - self.ultimo_enviado:]
                 self.ultimo_enviado = ack_no
-
+                print("TCP: ACK recebido para %s:%d" % (src_addr, src_port))
                 if self.nao_confirmados:
                     self.iniciar_timer()
                 else:
@@ -141,6 +138,7 @@ class Conexao:
 
             #Se tiver algum payload, envia o pacote para a camada de aplicação
             if len(payload) > 0:
+                print("TCP: Enviando pacote para a camada de aplicação, len payload: %d" % len(payload))
                 dados = make_header(src_port, dst_port, self.seq_no, self.ack_no, flags)
                 self.servidor.rede.enviar(fix_checksum(dados, src_addr,dst_addr),dst_addr)
                 self.callback(self, payload)
@@ -178,6 +176,7 @@ class Conexao:
         """
         src_addr, src_port, dst_addr, dst_port = self.id_conexao
         cabecalho = make_header(dst_port, src_port, self.seq_no, self.ack_no, FLAGS_FIN)
+        print("TCP: Enviando FIN para %s:%d" % (src_addr, src_port))
         self.servidor.rede.enviar(fix_checksum(cabecalho, dst_addr, src_addr), src_addr)
     
     def enviar_ack(self, payload):
@@ -192,6 +191,7 @@ class Conexao:
             #Adiciona o pacote a lista de nao confirmados
             self.nao_confirmados = self.nao_confirmados + payload
         cabecalho = make_header(src_port, dst_port, seq_no, self.ack_no, FLAGS_ACK)
+        print("TCP: Enviando ACK para %s:%d, len payload: %d" % (src_addr, src_port, len(payload)))
         self.servidor.rede.enviar(fix_checksum(cabecalho + payload, src_addr, dst_addr), dst_addr)
         #Se nao tiver um timer, inicia o timer de timeout
         if self.timer is None:

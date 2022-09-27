@@ -19,6 +19,7 @@ class IP:
     def __raw_recv(self, datagrama):
         dscp, ecn, identification, flags, frag_offset, ttl, proto, \
            src_addr, dst_addr, payload = read_ipv4_header(datagrama)
+        print('IP: Recebido datagrama de camada de enlace, len datagrama: ', len(datagrama))
         if dst_addr == self.meu_endereco:
             # atua como host
             if proto == IPPROTO_TCP and self.callback:
@@ -40,9 +41,7 @@ class IP:
             datagrama = struct.pack('!BBHHHBBH', versao_ihl, dscpecn, tamanho, identification, flags, ttl, proto, checksum) + str2addr(src_addr) + str2addr(dst_addr)
             # Tratando corretamente o campo TTL do datagrama
             if ttl > 0:
-                print('Encaminhando datagrama de %s para %s' % (src_addr, dst_addr))
-                print('Próximo salto: %s' % next_hop)
-                print('datagrama: %s' % datagrama)
+                print('IP: Enviando datagrama para camada de enlace, len datagrama: ', len(datagrama))
                 self.enlace.enviar(datagrama, next_hop)
             else:
                 next_hop = self._next_hop(src_addr)
@@ -126,6 +125,5 @@ class IP:
         checksum = calc_checksum(header)
         header = struct.pack('!BBHHHBBH', versao_ihl, dscpecn, tamanho, identification, flags, ttl, protocolo, checksum) + str2addr(self.meu_endereco) + str2addr(dest_addr)
         datagrama = header + segmento
-        print('Enviando datagrama IPv4 para %s' % dest_addr)
-        print('Dados: %s' % datagrama)
+        print('IP: Enviando datagrama para camada de enlace, len datagrama: ', len(datagrama))
         self.enlace.enviar(datagrama, next_hop)

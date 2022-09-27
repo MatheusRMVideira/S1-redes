@@ -4,13 +4,14 @@ from camadafisica import ZyboSerialDriver
 from tcp import Servidor        # copie o arquivo do T2
 from ip import IP               # copie o arquivo do T3
 from slip import CamadaEnlace   # copie o arquivo do T4
+from irc import *
 
 ## Implementação da camada de aplicação
 
 # Este é um exemplo de um programa que faz eco, ou seja, envia de volta para
 # o cliente tudo que for recebido em uma conexão.
 
-def dados_recebidos(conexao, dados):
+def dados_recebidos_echo(conexao, dados):
     if dados == b'':
         conexao.fechar()
     else:

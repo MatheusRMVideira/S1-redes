@@ -52,13 +52,13 @@ def sair(conexao):
 		if conexao in valor:
 			valor.remove(conexao)	
 	
-	print(conexao, 'conexão fechada')
+	print(conexao, 'IRC: conexão fechada')
 	conexao.fechar()
 
 
 def dados_recebidos(conexao, dados):
 	cont_linhas = 0
-	print('IRC recebeu', dados)
+	print('IRC: recebeu dados de tamanho:', len(dados))
 	if dados == b'': #caso nao possua dados, finalizar conexao
 		return sair(conexao)
        	
